@@ -11,11 +11,11 @@ url:        	  'https://www.antonsko.net'
 
 # Owner/author information
 owner:
-  name:           Anton Skovorodko
+  name:           Anton Berlinsky
   avatar:         antonsko.jpg
-  email:          
+  email:
   # Use the coder's toolbox at http://coderstoolbox.net/string/#!encoding=xml&action=encode&charset=us_ascii to encode your description into XML string
-  description:    
+  description:
   # Social networking links used in footer. Update and remove as you like.
   twitter:        skoant
   facebook:       antonsko

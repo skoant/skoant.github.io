@@ -59,6 +59,11 @@ title: Beach cameras in Tel Aviv, Israel
             <h3><a href="https://webcasting.co.il/player/tlv/museum_mute.html">Maaravi South</a></h3>
         </td>
     </tr>
+<tr>
+<td>
+    <iframe id="cam1" src="https://s5.ipcamlive.com/streams/054ygdrbexotnlxjm/stream.m3u8"></iframe>
+</td>
+</tr>
   </tbody>
 </table>
 <table>
