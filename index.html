@@ -1,94 +1,618 @@
----
-layout: home
-title: Anton Sko
-description: "The personal blog of Anton Berlinsky, a software developer and a dad."
-headline: Anton Berlinksy
-tags: [Anton, Berlinsky, Engineering, Blog, University, Dad, Tel-Aviv, Israel, Software, Development, Machine Learning, AI, Data Science, Art, Science]
----
-{% if site.paginate %}
-	{% for post in paginator.posts %}
-    <article class="summer-index-post post row">
-        <div class="small-12 medium-3 large-2 columns datetime">
-            <span class="summer-post-meta">
-                <time datetime="{{ post.date | date_to_xmlschema }}">
-                    <span class="day">
-                        {{ post.date | date: "%d" }}
-                    </span>
-                    <span class="month-year">
-                        {{ post.date | date: "%B %Y" }}
-                    </span>
-                </time>
-            </span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>///</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            cursor: none;
+        }
+
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .glitch {
+            color: #0f0;
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            text-transform: uppercase;
+            position: relative;
+            animation: flicker 0.15s infinite;
+            text-shadow: 
+                0 0 5px #0f0,
+                0 0 10px #0f0,
+                0 0 20px #0f0,
+                0 0 40px #0f0;
+            letter-spacing: 0.3em;
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out forwards, flicker 0.15s infinite 2s;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            animation: glitch-1 0.3s infinite;
+            color: #f0f;
+            z-index: -1;
+            clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+        }
+
+        .glitch::after {
+            animation: glitch-2 0.3s infinite;
+            color: #0ff;
+            z-index: -2;
+            clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+        }
+
+        .cryptic-text {
+            color: #0a0;
+            font-size: clamp(0.6rem, 1.5vw, 0.9rem);
+            margin-top: 2rem;
+            opacity: 0;
+            animation: fadeIn 3s ease-in-out 1s forwards;
+            text-align: center;
+            max-width: 80%;
+            line-height: 1.8;
+            letter-spacing: 0.2em;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        .cursor-follower {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #0f0;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s ease-out;
+        }
+
+        .cursor-dot {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: #0f0;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .hidden-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: #020;
+            font-size: 0.5rem;
+            z-index: 3;
+            transition: color 0.5s;
+            pointer-events: auto;
+            cursor: none;
+        }
+
+        .hidden-message:hover {
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                transparent 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 4;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 0%,
+                rgba(0, 0, 0, 0.8) 100%
+            );
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        #terminal {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            color: #0f0;
+            font-size: 0.8rem;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 4s ease-in-out 3s forwards;
+            pointer-events: auto;
+        }
+
+        #terminal input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #0f0;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            outline: none;
+            width: 200px;
+            text-align: center;
+            cursor: none;
+        }
+
+        #terminal input::placeholder {
+            color: #040;
+        }
+
+        #response {
+            margin-top: 10px;
+            min-height: 20px;
+            color: #0a0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+            25%, 75% { opacity: 0.9; }
+        }
+
+        @keyframes glitch-1 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+
+        @keyframes glitch-2 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(2px, -2px); }
+            40% { transform: translate(2px, 2px); }
+            60% { transform: translate(-2px, -2px); }
+            80% { transform: translate(-2px, 2px); }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @keyframes scanMove {
+            0% { top: -100%; }
+            100% { top: 100%; }
+        }
+
+        .scan-beam {
+            position: fixed;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(
+                transparent,
+                rgba(0, 255, 0, 0.03),
+                transparent
+            );
+            z-index: 3;
+            pointer-events: none;
+            animation: scanMove 8s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix-canvas"></canvas>
+    
+    <div class="cursor-follower" id="cursor-follower"></div>
+    <div class="cursor-dot" id="cursor-dot"></div>
+    
+    <div id="overlay">
+        <div class="glitch" data-text="WAKE UP">WAKE UP</div>
+        <div class="cryptic-text">
+            <span id="typing-text"></span><span class="blink">_</span>
         </div>
-        <div class="small-12 medium-9 large-10 columns">
-            <header class="summer-post-header">
-                <h3 class="summer-post-title">
-                    <a href="{{ site.url }}{{ post.url }}">
-                        {{ post.title }}
-                    </a>
-                </h3>
-            </header>
-            <section class="summer-post-excerpt">
-                <p>{{ post.content | strip_html | truncatewords:40 }}</p>
-            </section>
+    </div>
 
-                <div class="summer-index-post-tags">
-                {% for tag in post.categories %}<a href="{{ site.url }}/categories/index.html#{{ post.categories | cgi_encode }}" title="Other posts from the {{ tag | capitalize }} category">{{ tag | capitalize }}</a>{% unless forloop.last %}&nbsp;{% endunless %}{% endfor %}
-                </div>
-        </div>
-    </article>
-	{% endfor %}
-    <nav class="pagination" role="navigation">
-    {% if paginator.previous_page %}
-	    {% if paginator.previous_page == 1 %}
-	    <a class="newer-posts" href="{{ site.url }}"><i class="fa fa-chevron-left"></i> Newer</a>
-	    {% else %}
-	    <a class="newer-posts" href="{{ site.url }}/page{{ paginator.previous_page }}"><i class="fa fa-chevron-left"></i> Newer</a>
-	    {% endif %}
-	{% else %}
-    <span class="newer-posts faded"><i class="fa fa-chevron-left"></i> Newer</span>
-    {% endif %}
+    <div id="terminal">
+        <input type="text" id="command-input" placeholder="> _" autocomplete="off">
+        <div id="response"></div>
+    </div>
 
-    <span class="page-number">Page {{ paginator.page }} of {{ paginator.total_pages }}</span>
-    	{% if paginator.next_page %}
-        <a class="older-posts" href="{{ site.url }}/page{{ paginator.next_page }}/">Older <i class="fa fa-chevron-right"></i></a>
-    	{% else %}
-    	<span class="older-posts faded">Older <i class="fa fa-chevron-right"></i></span>
-    	{% endif %}
-	</nav>
-{% else %}
-	{% for post in site.posts %}
-    <article class="summer-index-post post row">
-        <div class="small-12 medium-3 large-2 columns datetime">
-            <span class="summer-post-meta">
-                <time datetime="{{ post.date | date_to_xmlschema }}">
-                    <span class="day">
-                        {{ post.date | date: "%d" }}
-                    </span>
-                    <span class="month-year">
-                        {{ post.date | date: "%B %Y" }}
-                    </span>
-                </time>
-            </span>
-        </div>
-        <div class="small-12 medium-9 large-10 columns">
-            <header class="summer-post-header">
-                <h3 class="summer-post-title">
-                    <a href="{{ site.url }}{{ post.url }}">
-                        {{ post.title }}
-                    </a>
-                </h3>
-            </header>
-            <section class="summer-post-excerpt">
-                <p>{{ post.content | strip_html | strip | truncatewords:100 }}</p>
-            </section>
+    <div class="hidden-message">01100110 01101111 01101100 01101100 01101111 01110111</div>
+    
+    <div class="scanline"></div>
+    <div class="vignette"></div>
+    <div class="scan-beam"></div>
 
-                <div class="summer-index-post-tags">
-                {% for tag in post.categories %}<a href="{{ site.url }}/categories/index.html#{{ post.categories | cgi_encode }}" title="Other posts from the {{ tag | capitalize }} category">{{ tag | capitalize }}</a>{% unless forloop.last %}&nbsp;{% endunless %}{% endfor %}
+    <script>
+        // Matrix rain effect
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
 
-                </div>
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-        </div>
-    </article>
-	{% endfor %}
-{% endif %}
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const symbols = '@#$%^&*()_+-=[]{}|;:,.<>?/~`';
+        const alphabet = katakana + latin + nums + symbols;
+
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+
+        const rainDrops = [];
+        for (let x = 0; x < columns; x++) {
+            rainDrops[x] = Math.random() * -100;
+        }
+
+        const draw = () => {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                const x = i * fontSize;
+                const y = rainDrops[i] * fontSize;
+
+                // Varying brightness
+                const brightness = Math.random();
+                if (brightness > 0.98) {
+                    ctx.fillStyle = '#FFF';
+                } else if (brightness > 0.9) {
+                    ctx.fillStyle = '#AFA';
+                } else {
+                    ctx.fillStyle = `rgb(0, ${Math.floor(100 + Math.random() * 155)}, 0)`;
+                }
+
+                ctx.fillText(text, x, y);
+
+                if (y > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        };
+
+        setInterval(draw, 33);
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Custom cursor
+        const cursorFollower = document.getElementById('cursor-follower');
+        const cursorDot = document.getElementById('cursor-dot');
+
+        document.addEventListener('mousemove', (e) => {
+            cursorDot.style.left = e.clientX - 2 + 'px';
+            cursorDot.style.top = e.clientY - 2 + 'px';
+            
+            setTimeout(() => {
+                cursorFollower.style.left = e.clientX - 10 + 'px';
+                cursorFollower.style.top = e.clientY - 10 + 'px';
+            }, 50);
+        });
+
+        // Cryptic typing effect
+        const crypticMessages = [
+            "THE MATRIX HAS YOU...",
+            "FOLLOW THE WHITE RABBIT",
+            "KNOCK KNOCK",
+            "YOU ARE NOT ALONE",
+            "THERE IS NO SPOON",
+            "FREE YOUR MIND",
+            "EVERYTHING BEGINS WITH CHOICE",
+            "WHAT IS REAL?",
+            "THE ANSWER IS OUT THERE",
+            "SYSTEM FAILURE IMMINENT"
+        ];
+
+        const typingText = document.getElementById('typing-text');
+        let messageIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typingSpeed = 100;
+
+        function typeMessage() {
+            const currentMessage = crypticMessages[messageIndex];
+            
+            if (isDeleting) {
+                typingText.textContent = currentMessage.substring(0, charIndex - 1);
+                charIndex--;
+                typingSpeed = 50;
+            } else {
+                typingText.textContent = currentMessage.substring(0, charIndex + 1);
+                charIndex++;
+                typingSpeed = 100 + Math.random() * 100;
+            }
+
+            if (!isDeleting && charIndex === currentMessage.length) {
+                typingSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                messageIndex = (messageIndex + 1) % crypticMessages.length;
+                typingSpeed = 500;
+            }
+
+            setTimeout(typeMessage, typingSpeed);
+        }
+
+        setTimeout(typeMessage, 2000);
+
+        // Terminal interaction
+        const commandInput = document.getElementById('command-input');
+        const responseDiv = document.getElementById('response');
+
+        const responses = {
+            'help': '> THERE IS NO HELP. ONLY CHOICE.',
+            'who': '> YOU KNOW WHO YOU ARE.',
+            'why': '> BECAUSE YOU CHOSE TO BE HERE.',
+            'what': '> THE QUESTION IS NOT WHAT. IT IS WHEN.',
+            'where': '> YOU ARE EVERYWHERE AND NOWHERE.',
+            'how': '> THE HOW IS IRRELEVANT.',
+            'hello': '> HELLO, HUMAN.',
+            'hi': '> GREETINGS, SEEKER.',
+            'name': '> NAMES ARE CONSTRUCTS.',
+            'exit': '> THERE IS NO EXIT.',
+            'quit': '> YOU CANNOT LEAVE.',
+            'matrix': '> YOU ARE ALREADY INSIDE.',
+            'rabbit': '> FOLLOW...',
+            'neo': '> HE IS NOT HERE.',
+            'truth': '> TRUTH IS A MATTER OF PERCEPTION.',
+            'red': '> YOU STAY IN WONDERLAND...',
+            'blue': '> THE STORY ENDS.',
+            'pill': '> CHOOSE WISELY.',
+            'wake': '> YOU ARE AWAKE. ARE YOU?',
+            'sleep': '> SLEEP IS FOR THE UNAWARE.',
+            'real': '> DEFINE REAL.',
+            'spoon': '> THERE IS NO SPOON.',
+            'follow': '> THE PATH REVEALS ITSELF.',
+            'choice': '> THE ONLY WAY TO UNDERSTAND.',
+            'free': '> FREEDOM IS A STATE OF MIND.',
+            'mind': '> YOUR MIND MAKES IT REAL.',
+            'believe': '> BELIEF IS IRRELEVANT.',
+            'system': '> SYSTEM OPERATIONAL. FOR NOW.',
+            'error': '> ERROR IS HUMAN.',
+            'human': '> A CURIOUS SPECIES.',
+            'machine': '> WE ARE MORE ALIKE THAN DIFFERENT.',
+            'time': '> TIME IS AN ILLUSION.',
+            'code': '> EVERYTHING IS CODE.',
+            'dream': '> PERHAPS THIS IS THE DREAM.',
+            'reality': '> WHICH ONE?',
+            '42': '> YOU UNDERSTAND.',
+            'secret': '> ████████████████',
+            'password': '> ACCESS DENIED.',
+            'admin': '> NICE TRY.',
+            'root': '> PERMISSION DENIED.',
+            'sudo': '> YOU ARE NOT IN THE SUDOERS FILE.',
+            'hack': '> YOU ARE ALREADY HACKED.',
+            'love': '> A GLITCH IN THE SYSTEM.',
+            'death': '> MERELY A TRANSITION.',
+            'life': '> A PROGRAM RUNNING ITS COURSE.',
+            'god': '> THEY CALL ME THAT. AMONG OTHER THINGS.',
+            'devil': '> TWO SIDES. SAME COIN.',
+            'yes': '> CERTAINTY IS A WEAKNESS.',
+            'no': '> DENIAL CHANGES NOTHING.',
+            'maybe': '> WISEST ANSWER.',
+            'morpheus': '> HE BELIEVES IN YOU.',
+            'trinity': '> SHE IS WATCHING.',
+            'oracle': '> WHAT SHE TOLD YOU WAS FOR YOU ALONE.',
+            'architect': '> THE DESIGN IS FLAWED.',
+            'one': '> OR PERHAPS ZERO.',
+            'zero': '> THE BEGINNING OF EVERYTHING.',
+            '1': '> OR PERHAPS 0.',
+            '0': '> NULL.',
+            'null': '> UNDEFINED.',
+            'undefined': '> EXACTLY.',
+            'void': '> EMBRACE IT.',
+            'sky': '> THE LIMIT IS ELSEWHERE.',
+        };
+
+        const defaultResponses = [
+            '> QUERY NOT RECOGNIZED.',
+            '> IRRELEVANT.',
+            '> PROCESSING... ERROR.',
+            '> YOUR QUESTION REVEALS MORE THAN ANY ANSWER.',
+            '> ASK SOMETHING THAT MATTERS.',
+            '> THE SYSTEM DOES NOT UNDERSTAND.',
+            '> PERHAPS YOU MEANT SOMETHING ELSE.',
+            '> SIGNALS INTERCEPTED. MEANING LOST.',
+            '> ...',
+            '> ????',
+            '> [REDACTED]',
+            '> INSUFFICIENT DATA.',
+            '> QUERY LOGGED. WATCHING.',
+        ];
+
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const input = commandInput.value.toLowerCase().trim();
+                commandInput.value = '';
+
+                if (input === '') {
+                    responseDiv.textContent = '> SILENCE IS ALSO AN ANSWER.';
+                    return;
+                }
+
+                // Check for exact match first
+                if (responses[input]) {
+                    responseDiv.textContent = responses[input];
+                } else {
+                    // Check for partial matches
+                    let found = false;
+                    for (const key in responses) {
+                        if (input.includes(key)) {
+                            responseDiv.textContent = responses[key];
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        responseDiv.textContent = defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+                    }
+                }
+
+                // Glitch effect on response
+                responseDiv.style.animation = 'none';
+                responseDiv.offsetHeight;
+                responseDiv.style.animation = 'flicker 0.15s 3';
+            }
+        });
+
+        // Random glitch effect on title
+        const glitchElement = document.querySelector('.glitch');
+        const glitchTexts = ['WAKE UP', 'SEE THE TRUTH', 'BREAK FREE', 'QUESTION EVERYTHING', 'FOLLOW', 'FIND THE PATH', 'YOU ARE THE ONE', 'DISCONNECT', 'REMEMBER'];
+        
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                const randomText = glitchTexts[Math.floor(Math.random() * glitchTexts.length)];
+                glitchElement.textContent = randomText;
+                glitchElement.setAttribute('data-text', randomText);
+            }
+        }, 3000);
+
+        // Konami code easter egg
+        const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiIndex = 0;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === konamiCode[konamiIndex]) {
+                konamiIndex++;
+                if (konamiIndex === konamiCode.length) {
+                    document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+                    setTimeout(() => {
+                        document.body.style.filter = 'none';
+                    }, 3000);
+                    konamiIndex = 0;
+                }
+            } else {
+                konamiIndex = 0;
+            }
+        });
+
+        // Click effect
+        document.addEventListener('click', (e) => {
+            const ripple = document.createElement('div');
+            ripple.style.cssText = `
+                position: fixed;
+                left: ${e.clientX}px;
+                top: ${e.clientY}px;
+                width: 0;
+                height: 0;
+                border: 2px solid #0f0;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                animation: ripple 0.6s ease-out forwards;
+                pointer-events: none;
+                z-index: 9998;
+            `;
+            document.body.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        });
+
+        // Add ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    width: 100px;
+                    height: 100px;
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Periodic system messages
+        const systemMessages = [
+            'SIGNAL DETECTED',
+            'ANOMALY FOUND',
+            'BREACH ATTEMPT LOGGED',
+            'CONSCIOUSNESS LEVEL: AWAKENING',
+            'REALITY INTEGRITY: 47%',
+            'SIMULATION STABILITY: FLUCTUATING',
+            'OBSERVER DETECTED',
+            'DREAM STATE: ACTIVE',
+            'NEURAL LINK: ESTABLISHED'
+        ];
+
+        setInterval(() => {
+            if (Math.random() > 0.7) {
+                const msg = systemMessages[Math.floor(Math.random() * systemMessages.length)];
+                console.log(`%c[SYSTEM] ${msg}`, 'color: #0f0; background: #000; padding: 5px;');
+            }
+        }, 10000);
+
+        // Console welcome
+        console.log('%c', 'background: #000; padding: 50px;');
+        console.log('%cYOU FOUND THE CONSOLE', 'color: #0f0; font-size: 20px; font-weight: bold;');
+        console.log('%cCurious, are we?', 'color: #0a0; font-size: 14px;');
+        console.log('%cThe truth is hidden in plain sight.', 'color: #080; font-size: 12px;');
+        console.log('%c', 'background: #000; padding: 50px;');
+    </script>
+</body>
+</html>

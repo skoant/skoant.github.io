@@ -1,7 +1,7 @@
 title:            my
 description:      "T h o u g h t s"
-logo:             skologo.png
-disqus_shortname: skoant
+logo:             smith
+disqus_shortname: smith
 share:            true
 dropcap:          true
 # Change url to your domain. Leave localhost server or blank when working locally.
@@ -11,16 +11,16 @@ url:        	  'https://www.antonsko.net'
 
 # Owner/author information
 owner:
-  name:           Anton Berlinsky
-  avatar:         antonsko.jpg
+  name:           Mr Smith
+  avatar:         
   email:
   # Use the coder's toolbox at http://coderstoolbox.net/string/#!encoding=xml&action=encode&charset=us_ascii to encode your description into XML string
   description:
   # Social networking links used in footer. Update and remove as you like.
-  twitter:        skoant
-  facebook:       antonsko
-  github:         skoant
-  instagram:      skoant
+  twitter:        
+  facebook:       
+  github:         
+  instagram:      
   # For Google Authorship https://plus.google.com/authorship
   #google_plus:    https://plus.google.com/u/0/123
 
